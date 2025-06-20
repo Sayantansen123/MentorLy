@@ -1,6 +1,8 @@
 import React, { useState, Fragment } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebook, faGoogle } from "@fortawesome/free-brands-svg-icons";
+import axiosInstance from "../api/axios";
+import { toast } from 'react-toastify';
 
 const SocialLoginButton = () => (
   <Fragment>
@@ -15,14 +17,35 @@ const SocialLoginButton = () => (
   </Fragment>
 );
 
+
+
 const SignInModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
-
+  const [error, setError] = useState('');
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Logging in with", formData);
+    setError('');
+
+    try {
+      const res = await axiosInstance.post('/auth/login', formData);
+      // Assuming backend sends token like: { token: "..." }
+      localStorage.setItem('token', res.data.token);
+      toast.success('Login successful!');
+      onClose()
+      setFormData({ email: "", password: "" });
+      window.location.reload(); 
+
+    } catch (err) {
+      console.error('Login failed:', err);
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Something went wrong. Try again.');
+      }
+    }
   };
 
   return (
