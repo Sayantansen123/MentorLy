@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Play, Rocket, Users, BookOpen, Award, BarChart, Brain, Zap, Clock, TrendingUp, Star, CheckCircle } from 'lucide-react';
-
+import SignInModal from './SignInModal';
 const Homepage = ({ navigateTo }) => {
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+
   const features = [
     {
       icon: <Users className="h-8 w-8" />,
@@ -59,9 +61,9 @@ const Homepage = ({ navigateTo }) => {
               Transform your teaching experience with cutting-edge technology.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
               <button 
-                onClick={() => navigateTo('classroom')}
+                onClick={() => setIsLoginOpen(true)}
                 className="group bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center space-x-2"
               >
                 <Rocket className="h-6 w-6 group-hover:animate-pulse" />
@@ -183,7 +185,7 @@ const Homepage = ({ navigateTo }) => {
           </div>
         </div>
       </section>
-
+<SignInModal isOpen={isLoginOpen} setIsOpen={setIsLoginOpen} />
       {/* Stats Section */}
       <section className="px-4 py-16 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
