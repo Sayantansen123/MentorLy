@@ -1,14 +1,24 @@
 import React, { useState } from 'react';
-import { Plus, Search, Clock, Users, Play, BookOpen, Beaker, Calculator, Globe, Music, Palette, Trophy } from 'lucide-react';
+import {
+  Plus, Search, Clock, Users, Play, BookOpen,
+  Beaker, Calculator, Globe, Music, Palette, Trophy
+} from 'lucide-react';
 
 const ClassroomPage = ({ navigateTo, joinClass }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    section: '',
+    subject: '',
+    room: '',
+  });
   const [joinCode, setJoinCode] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const demoClasses = [
+  const [classes, setClasses] = useState([
     {
       id: 1,
-      name: "9th Grade Science",
+      name: "DBMS",
       teacher: "Ms. Asha",
       subject: "Science",
       icon: <Beaker className="h-6 w-6" />,
@@ -21,7 +31,7 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
       id: 2,
       name: "Advanced Mathematics",
       teacher: "Mr. Raj",
-      subject: "Mathematics", 
+      subject: "Mathematics",
       icon: <Calculator className="h-6 w-6" />,
       nextClass: "Today, 2:00 PM",
       students: 18,
@@ -30,9 +40,9 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
     },
     {
       id: 3,
-      name: "English Literature",
+      name: "Computer Networks",
       teacher: "Mrs. Singh",
-      subject: "English",
+      subject: "CS",
       icon: <BookOpen className="h-6 w-6" />,
       nextClass: "Monday, 11:00 AM",
       students: 31,
@@ -41,9 +51,9 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
     },
     {
       id: 4,
-      name: "World History",
+      name: "DSA",
       teacher: "Dr. Kumar",
-      subject: "History",
+      subject: "CSE",
       icon: <Globe className="h-6 w-6" />,
       nextClass: "Live Now",
       students: 27,
@@ -52,9 +62,9 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
     },
     {
       id: 5,
-      name: "Music Theory",
+      name: "DWDM",
       teacher: "Ms. Priya",
-      subject: "Music",
+      subject: "CS",
       icon: <Music className="h-6 w-6" />,
       nextClass: "Wednesday, 3:30 PM",
       students: 15,
@@ -63,16 +73,37 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
     },
     {
       id: 6,
-      name: "Digital Art",
+      name: "Machine Learning",
       teacher: "Mr. Dev",
-      subject: "Art",
+      subject: "CSE",
       icon: <Palette className="h-6 w-6" />,
       nextClass: "Friday, 1:00 PM",
       students: 20,
       status: "upcoming",
       color: "from-teal-500 to-cyan-600"
     }
-  ];
+  ]);
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = () => {
+    const newClass = {
+      id: classes.length + 1,
+      name: formData.name,
+      teacher: "You",
+      subject: formData.subject,
+      icon: <BookOpen className="h-6 w-6" />,
+      nextClass: "Not Scheduled",
+      students: 0,
+      status: "upcoming",
+      color: "from-indigo-500 to-blue-600"
+    };
+    setClasses([newClass, ...classes]);
+    setFormData({ name: '', section: '', subject: '', room: '' });
+    setIsModalOpen(false);
+  };
 
   const handleJoinClass = (classData) => {
     joinClass(classData);
@@ -80,8 +111,7 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
 
   const handleJoinWithCode = () => {
     if (joinCode.trim()) {
-      const demoClass = demoClasses[0];
-      joinClass(demoClass);
+      joinClass(classes[0]);
       setJoinCode('');
     }
   };
@@ -102,7 +132,7 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
     }
   };
 
-  const filteredClasses = demoClasses.filter(cls =>
+  const filteredClasses = classes.filter(cls =>
     cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cls.teacher.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cls.subject.toLowerCase().includes(searchTerm.toLowerCase())
@@ -124,7 +154,10 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
         {/* Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           {/* Create Class Card */}
-          <div className="bg-white rounded-2xl p-8 border border-gray-200 hover:shadow-lg transition-all duration-300 group">
+          <div
+            className="bg-white rounded-2xl p-8 border border-gray-200 hover:shadow-lg transition-all duration-300 group cursor-pointer"
+            onClick={() => setIsModalOpen(true)}
+          >
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-full mb-6 group-hover:scale-110 transition-transform">
                 <Plus className="h-8 w-8 text-white" />
@@ -136,6 +169,25 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
               </button>
             </div>
           </div>
+
+          {/* Modal */}
+          {isModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-8 rounded-xl w-full max-w-md shadow-lg">
+                <h2 className="text-2xl font-bold mb-6">Create a New Class</h2>
+                <div className="space-y-4">
+                  <input name="name" placeholder="Class Name" value={formData.name} onChange={handleChange} className="w-full p-3 border rounded-lg" />
+                  <input name="section" placeholder="Section" value={formData.section} onChange={handleChange} className="w-full p-3 border rounded-lg" />
+                  <input name="subject" placeholder="Subject" value={formData.subject} onChange={handleChange} className="w-full p-3 border rounded-lg" />
+                  <input name="room" placeholder="Room" value={formData.room} onChange={handleChange} className="w-full p-3 border rounded-lg" />
+                </div>
+                <div className="flex justify-end mt-6 space-x-4">
+                  <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                  <button onClick={handleSubmit} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Create</button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Join Class Card */}
           <div className="bg-white rounded-2xl p-8 border border-gray-200 hover:shadow-lg transition-all duration-300 group">
@@ -151,7 +203,7 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
                   placeholder="Enter class code"
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value)}
-                  className="flex-1 bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="flex-1 bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
                 <button
                   onClick={handleJoinWithCode}
@@ -174,7 +226,7 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
                 placeholder="Search classes, teachers, or subjects..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-300 rounded-lg pl-12 pr-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full bg-gray-50 border border-gray-300 rounded-lg pl-12 pr-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
             <div className="flex items-center space-x-2">
@@ -192,23 +244,16 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
               className="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 transform hover:scale-105 group cursor-pointer"
               onClick={() => handleJoinClass(classData)}
             >
-              {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className={`p-3 rounded-xl bg-gradient-to-r ${classData.color} group-hover:scale-110 transition-transform`}>
-                  <div className="text-white">
-                    {classData.icon}
-                  </div>
+                  <div className="text-white">{classData.icon}</div>
                 </div>
                 {getStatusBadge(classData.status)}
               </div>
-
-              {/* Class Info */}
               <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
                 {classData.name}
               </h3>
               <p className="text-gray-600 mb-4">{classData.teacher}</p>
-
-              {/* Schedule and Students */}
               <div className="space-y-3 mb-6">
                 <div className="flex items-center space-x-2">
                   <Clock className="h-4 w-4 text-gray-400" />
@@ -219,8 +264,6 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
                   <span className="text-gray-600 text-sm">{classData.students} students</span>
                 </div>
               </div>
-
-              {/* Join Button */}
               <button
                 className={`w-full ${
                   classData.status === 'live'
@@ -246,7 +289,10 @@ const ClassroomPage = ({ navigateTo, joinClass }) => {
               <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-6" />
               <h3 className="text-2xl font-bold text-gray-900 mb-4">No classes found</h3>
               <p className="text-gray-600 mb-6">Try adjusting your search terms or create a new class to get started.</p>
-              <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105">
+              <button
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                onClick={() => setIsModalOpen(true)}
+              >
                 Create Your First Class
               </button>
             </div>
