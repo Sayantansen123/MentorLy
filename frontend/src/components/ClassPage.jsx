@@ -54,7 +54,7 @@ const ClassPage = ({ classData, navigateTo }) => {
   const assignments = [
     {
       id: 1,
-      title: "Chapter 5: Wave Properties",
+      title: "Chapter 5:Relational Database",
       dueDate: "Due Tomorrow",
       status: "pending",
       points: 25,
