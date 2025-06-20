@@ -8,7 +8,7 @@ const router = express.Router();
 
 // Register
 router.post("/register", async (req, res) => {
-  const { name, email, password, role,collegeOrSchool, adress,year } = req.body;
+  const { email, password, role,firstname,lastname } = req.body;
   try {
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ msg: "User already exists" });
@@ -17,13 +17,11 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     user = new User({
-      name,
+      firstname,
+      lastname,
       email,
       password: hashedPassword,
       role,
-      year,
-      collegeOrSchool,
-      adress
     });
 
     await user.save();
@@ -43,7 +41,8 @@ router.post("/register", async (req, res) => {
       token,
       user: {
         id: user._id,
-        name: user.name,
+        firstname: user.firstname,
+        lastname: user.lastname,
         email: user.email,
         role: user.role
       }
