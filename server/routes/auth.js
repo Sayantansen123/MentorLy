@@ -8,7 +8,7 @@ const router = express.Router();
 
 // Register
 router.post("/register", async (req, res) => {
-  const { name, email, password, role, class: studentClass, collegeOrSchool, collegeName, year } = req.body;
+  const { name, email, password, role,collegeOrSchool, adress,year } = req.body;
   try {
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ msg: "User already exists" });
@@ -21,8 +21,9 @@ router.post("/register", async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      class: role === "student" ? studentClass : undefined,
+      year,
       collegeOrSchool,
+      adress
     });
 
     await user.save();
