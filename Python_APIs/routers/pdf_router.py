@@ -1,7 +1,11 @@
+import os
 from fastapi import APIRouter, File, UploadFile
 from pydantic import BaseModel
+import requests
+from handlers.face import mtcnn_comp
 from handlers.pdf_handlers import PDFHandler, PDFSummary, PDFQuestions
 from handlers.text_extract import extract
+from handlers.url_parser import encode_image_url_param
 pdf_router = APIRouter(prefix="/pdf", tags=["PDF"])
 
 class Topic_Subject_Request(BaseModel):
@@ -46,3 +50,20 @@ def generate_questions(topic_subject: Topic_Subject_Request):
     Endpoint to generate questions based on topic and subject.
     """
     return PDFQuestions.generate_questions(topic=topic_subject.topic, subject=topic_subject.subject)
+
+@pdf_router.post("/checker")
+async def upload_image(image1: str,image2:UploadFile=File(...)):
+    image1_path = f"uploads/tmp_{os.path.basename(image1)}"
+    response = requests.get(image1)
+    if response.status_code != 200:
+        return {"error": "Failed to download image from Cloudinary URL."}
+    
+    with open(image1_path, "wb") as f:
+        f.write(response.content)
+
+
+    img2 = await image2.read()
+    with open(f"uploads/{image2.filename}", "wb") as f:
+        f.write(img2)
+    s=mtcnn_comp(image1_path,f"uploads/{image2.filename}")
+    return {"verified":s["verified"]}
