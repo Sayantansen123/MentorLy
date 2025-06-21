@@ -9,6 +9,7 @@ import Footer from './components/Footer.jsx';
 import { ToastContainer } from 'react-toastify';
 import PrivateRoute from './api/privateRoute.jsx';
 import ClassroomVideo from './components/ClassroomVideo.jsx';
+import Roadmap from './components/Flowchart.jsx';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

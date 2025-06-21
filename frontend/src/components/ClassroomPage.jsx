@@ -23,11 +23,17 @@ import {
   User,
 } from "lucide-react"
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
+import Roadmap from "./Flowchart";
 
 const ClassroomPage = () => {
   const navigate = useNavigate();
+  const [markdownTopic, setMarkDownTopic] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [pdfModalOpen,setIsPDFModalOpen] = useState(false)
+  const [pdfModalOpen, setIsPDFModalOpen] = useState(false)
+  const [pdfMarkdownOpen, setPdfMarkdownOpen] = useState(false)
+  const [pdfRoadmapOpen, setPdfRoadmapOpen] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false)
   const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false)
@@ -35,10 +41,65 @@ const ClassroomPage = () => {
   const [selectedClass, setSelectedClass] = useState(null)
   const [createdClass, setCreatedClass] = useState(null)
   const [activeTab, setActiveTab] = useState("classes")
+  const [fileUrl, setFileUrl] = useState(null);
   const [currentView, setCurrentView] = useState("overview") // 'overview' or 'class-detail'
-
-   const [file, setFile] = useState(null);
+  const [flowTopic,setflowTopic] = useState();
+  const [flowJson,setFlowJson] = useState({});
+  const [file, setFile] = useState(null);
   const inputRef = useRef();
+
+  const handleMarkdownSubmit = async () => {
+    if (!markdownTopic) return toast.error("No topic given");
+    try {
+      const res = await axios.post(`http://10.230.245.255:7000/pdf/generate_markdown?topic=${markdownTopic}`,  {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      toast.success("Uploaded successfully!");
+      console.log("Server Response:", res.data.download);
+      setFileUrl(res.data.download)
+    } catch (err) {
+      toast.error("Upload failed");
+      console.error(err);
+    }
+  }
+  
+  const handleFlowchartSubmit = async () =>{
+   if(!flowTopic){ return toast.error("No topic given") };
+   try {
+      const res = await axios.post(`http://10.230.245.255:7000/pdf/generate_roadmap?subject=${flowTopic}`,  {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      toast.success("Uploaded successfully!");
+      console.log("Server Response:", res.data);
+      setFlowJson(res.data)
+    } catch (err) {
+      toast.error("Upload failed");
+      console.error(err);
+    }
+
+  }
+
+  const handleUpload = async () => {
+    if (!file) return toast.error("No file selected");
+
+    const formData = new FormData();
+    formData.append('pdf_file', file); // field name `file` expected by backend
+    console.log(formData)
+    try {
+      const res = await axios.post('http://10.230.245.255:7000/pdf/generate_summary?topic=fadaw', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      toast.success("Uploaded successfully!");
+      console.log("Server Response:", res.data);
+      setFileUrl(res.data)
+    } catch (err) {
+      toast.error("Upload failed");
+      console.error(err);
+    }
+  };
 
   const handleFileChange = (e) => {
     const uploadedFile = e.target.files[0];
@@ -84,8 +145,8 @@ const ClassroomPage = () => {
     }
   };
 
-  
-  
+
+
   const [formData, setFormData] = useState({
     name: "",
     section: "",
@@ -341,7 +402,7 @@ const ClassroomPage = () => {
     } catch (error) {
       console.error("Failed to create class:", error);
     }
-  
+
   }
 
   const copyToClipboard = (code) => {
@@ -427,19 +488,17 @@ const ClassroomPage = () => {
           <div className="bg-white rounded-2xl p-2 border border-gray-200 shadow-sm">
             <button
               onClick={() => setActiveTab("classes")}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                activeTab === "classes" ? "bg-purple-600 text-white shadow-lg" : "text-gray-600 hover:text-purple-600"
-              }`}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${activeTab === "classes" ? "bg-purple-600 text-white shadow-lg" : "text-gray-600 hover:text-purple-600"
+                }`}
             >
               Classes
             </button>
             <button
               onClick={() => setActiveTab("assignments")}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                activeTab === "assignments"
+              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${activeTab === "assignments"
                   ? "bg-purple-600 text-white shadow-lg"
                   : "text-gray-600 hover:text-purple-600"
-              }`}
+                }`}
             >
               All Assignments
             </button>
@@ -499,9 +558,8 @@ const ClassroomPage = () => {
 
                   {joinMessage && (
                     <div
-                      className={`flex items-center justify-center space-x-2 text-sm ${
-                        joinMessageType === "success" ? "text-green-600" : "text-red-600"
-                      }`}
+                      className={`flex items-center justify-center space-x-2 text-sm ${joinMessageType === "success" ? "text-green-600" : "text-red-600"
+                        }`}
                     >
                       {joinMessageType === "success" ? (
                         <CheckCircle className="h-4 w-4" />
@@ -578,13 +636,12 @@ const ClassroomPage = () => {
                     </div>
                   </div>
                   <button
-                    className={`w-full ${
-                      classData.status === "live"
+                    className={`w-full ${classData.status === "live"
                         ? "bg-red-600 hover:bg-red-700"
                         : classData.status === "today"
                           ? "bg-orange-600 hover:bg-orange-700"
                           : "bg-purple-600 hover:bg-purple-700"
-                    } text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 transform group-hover:scale-105 flex items-center justify-center space-x-2`}
+                      } text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 transform group-hover:scale-105 flex items-center justify-center space-x-2`}
                   >
                     <Play className="h-5 w-5" />
                     <span>{classData.status === "live" ? "Join Live" : "Enter Class"}</span>
@@ -642,6 +699,32 @@ const ClassroomPage = () => {
                   <p className="text-gray-600">Summary of your pdf </p>
                 </div>
               </button>
+
+              <button
+                onClick={() => setPdfMarkdownOpen(true)}
+                className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:shadow-xl transition-all duration-300 group cursor-pointer flex items-center space-x-4"
+              >
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-600 rounded-full group-hover:scale-110 transition-transform">
+                  <Plus className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Get Notes </h3>
+                  <p className="text-gray-600">Notes of your topic </p>
+                </div>
+              </button>
+
+               <button
+                onClick={() => setPdfRoadmapOpen(true)}
+                className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:shadow-xl transition-all duration-300 group cursor-pointer flex items-center space-x-4"
+              >
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-600 rounded-full group-hover:scale-110 transition-transform">
+                  <Plus className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Get Flowchart </h3>
+                  <p className="text-gray-600">Get Flowchart of your topic </p>
+                </div>
+              </button>
             </div>
 
             {/* Search Bar */}
@@ -672,9 +755,8 @@ const ClassroomPage = () => {
                       <FileText className="h-6 w-6 text-white" />
                     </div>
                     <div
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        isOverdue(assignment.dueDate) ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${isOverdue(assignment.dueDate) ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
+                        }`}
                     >
                       {isOverdue(assignment.dueDate) ? "Overdue" : "Active"}
                     </div>
@@ -738,6 +820,7 @@ const ClassroomPage = () => {
             )}
           </>
         )}
+
 
         {/* Create Class Modal */}
         {isModalOpen && (
@@ -873,71 +956,153 @@ const ClassroomPage = () => {
           </div>
         )}
 
+        {/* pdf summarizer */}
         {pdfModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-in fade-in duration-300">
             <div className="bg-white p-8 rounded-xl w-full max-w-lg shadow-lg animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
               <h2 className="text-2xl font-bold mb-6">Create New Summary</h2>
               <div className="space-y-4">
-                 <label
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        className="flex flex-col items-center justify-center w-full h-64 p-6 border-2 border-dashed border-purple-400 rounded-2xl cursor-pointer bg-white hover:bg-purple-50 transition-all duration-300"
-      >
-        <input
-          type="file"
-          accept="image/*,video/*,.pdf,.doc,.docx"
-          className="hidden"
-          ref={inputRef}
-          onChange={handleFileChange}
-        />
+                <label
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  className="flex flex-col items-center justify-center w-full h-64 p-6 border-2 border-dashed border-purple-400 rounded-2xl cursor-pointer bg-white hover:bg-purple-50 transition-all duration-300"
+                >
+                  <input
+                    type="file"
+                    accept="image/*,video/*,.pdf,.doc,.docx"
+                    className="hidden"
+                    ref={inputRef}
+                    onChange={handleFileChange}
+                  />
 
-        {!file ? (
-          <>
-            <svg
-              className="w-12 h-12 text-purple-400 mb-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 16V4m0 0L3 8m4-4l4 4m5 8v-6m0 0l-4 4m4-4l4 4"
-              />
-            </svg>
-            <p className="text-gray-600">Click or drag a file here to upload</p>
-          </>
-        ) : (
-          <div className="text-center">
-            <p className="font-semibold text-purple-600">{file.name}</p>
-            <p className="text-sm text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
-            <button
-              onClick={removeFile}
-              className="mt-3 px-4 py-1 text-sm bg-red-500 text-white rounded-md hover:bg-red-600"
-            >
-              Remove
-            </button>
-          </div>
-        )}
-      </label>
-          
-                
+                  {!file ? (
+                    <>
+                      <svg
+                        className="w-12 h-12 text-purple-400 mb-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16V4m0 0L3 8m4-4l4 4m5 8v-6m0 0l-4 4m4-4l4 4"
+                        />
+                      </svg>
+                      <p className="text-gray-600">Click or drag a file here to upload</p>
+                    </>
+                  ) : (
+                    <div className="text-center">
+                      <p className="font-semibold text-purple-600">{file.name}</p>
+                      <p className="text-sm text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
+                      <button
+                        onClick={removeFile}
+                        className="mt-3 px-4 py-1 text-sm bg-red-500 text-white rounded-md hover:bg-red-600"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </label>
+
+
               </div>
               <div className="flex justify-end mt-6 space-x-4">
                 <button
-                  onClick={() => setIsPDFModalOpen(false)}
+                  onClick={() => { setIsPDFModalOpen(false), setFileUrl(null) }}
                   className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  
+                  onClick={handleUpload}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   Create Summary
                 </button>
+
+                {
+                  fileUrl ? <div><button
+                    onClick={() => window.open(fileUrl, "_blank")}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">Open summarize pdf</button></div> : <></>
+                }
               </div>
+            </div>
+          </div>
+        )}
+        
+        {/*pdf markdown*/}
+        {pdfMarkdownOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-in fade-in duration-300">
+            <div className="bg-white p-8 rounded-xl w-full max-w-lg shadow-lg animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
+              <h2 className="text-2xl font-bold mb-6">Write your topic</h2>
+              <div className="space-y-4">
+                <input
+                  name="title"
+                  placeholder="Assignment Title (required)"
+                  value={markdownTopic}
+                  onChange={(e) => setMarkDownTopic(e.target.value)}
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div className="flex justify-end mt-6 space-x-4">
+                <button
+                  onClick={() => {setPdfMarkdownOpen(false),setFileUrl(null),setMarkDownTopic("")}}
+                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleMarkdownSubmit}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Create Notes
+                </button>
+                {
+                  fileUrl ? <div><button
+                    onClick={() => window.open(fileUrl, "_blank")}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">Open Notes</button></div> : <></>
+                }
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/*pdf flowchart */}
+        {pdfRoadmapOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-in fade-in duration-300">
+            <div className="bg-white p-8 rounded-xl w-full max-w-lg shadow-lg animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
+              <h2 className="text-2xl font-bold mb-6">Write your topic</h2>
+              <div className="space-y-4">
+                <input
+                  name="title"
+                  placeholder="Assignment Title (required)"
+                  value={flowTopic}
+                  onChange={(e) => setflowTopic(e.target.value)}
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div className="flex justify-end mt-6 space-x-4">
+                <button
+                  onClick={() => {setPdfRoadmapOpen(false),setflowTopic(""),setFlowJson({})}}
+                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleFlowchartSubmit}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Create Roadmap
+                </button>
+              
+              </div>
+              {flowJson && Object.keys(flowJson).length > 0 ? (
+  <div className="mt-8">
+    <Roadmap roadmapData={flowJson} />
+  </div>
+) : null}
             </div>
           </div>
         )}
