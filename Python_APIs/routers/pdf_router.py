@@ -11,6 +11,7 @@ def generate_markdown(topic: str):
     """
     # Placeholder for actual markdown generation logic
     print(topic)
-    PDFHandler.generate_markdwon(topic)
+    download_link=PDFHandler.generate_markdwon(topic)
     return {"message": "Markdown generation started",
-            "filename": f"{topic.replace(' ', '_').lower()}_notes.md"}
+            "download": download_link}
+

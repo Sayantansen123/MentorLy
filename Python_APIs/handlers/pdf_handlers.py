@@ -2,6 +2,8 @@ from google import genai
 import os
 import dotenv
 from spire.doc import Document, FileFormat
+from handlers.upload import upload
+from handlers.download import download
 
 dotenv.load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -29,15 +31,17 @@ class PDFHandler:
         with open(f"{topic.replace(' ', '_').lower()}_notes.md", "w", encoding="utf-8") as f:
             f.write(response.text)
         filename = f"{topic.replace(' ', '_').lower()}_notes.md"
-        filepath = "C:\\Users\shree\MentorLy\Python_APIs"
+        filepath = os.getenv("PDF_FILE_PATH")
         filepath = os.path.join(filepath, filename)
-        PDFHandler.generate_pdf(filepath)
-
-        print("✅ Notes saved as PDF!")
+        return PDFHandler.generate_pdf(filepath, topic)
 
     @staticmethod
-    def generate_pdf(filepath: str):
+    def generate_pdf(filepath: str, topic: str):
         document = Document()
         document.LoadFromFile(filepath)
-        document.SaveToFile("ToPdf.pdf", FileFormat.PDF)
+        pdf_name = topic+"Topdf.pdf"
+        document.SaveToFile(pdf_name, FileFormat.PDF)
+        pdf_filepath=os.getenv("PDF_FILE_PATH")
+        pdf_filepath = os.path.join(pdf_filepath, "ToPdf.pdf")
         document.Dispose()
+        return upload(pdf_filepath,"ToPdf.pdf")
