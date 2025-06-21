@@ -1,3 +1,5 @@
+import json
+import re
 from google import genai
 import os
 import dotenv
@@ -45,6 +47,31 @@ class PDFHandler:
         pdf_filepath = os.path.join(pdf_filepath, pdf_name)
         document.Dispose()
         return upload(pdf_filepath,pdf_name)
+    
+    @staticmethod
+    def extract_json(text):
+        match = re.search(r'\[.*?\]', text, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+        else:
+            raise ValueError("No JSON array found in response.")
+    
+    @staticmethod
+    def generate_roadmap_json(subject: str):
+        prompt = f"""You are a helpful teaching assistant. Generate a detailed roadmap for learning the subject "{subject}".
+        The roadmap should be in JSON format with the following structure:
+        Each item in the list should be a class session and follow this structure:
+        - week: (integer) The week number
+        - day: (integer) The day number within the week (1 to 5)
+        - topic: (string) The topic to be covered in that class
+        - duration_minutes: (integer) Duration of the class in minutes
+        Only return a JSON array (not inside a string block, no explanation text).
+        """
+        response = client.models.generate_content(
+            model="gemini-2.5-flash", contents=prompt
+        )
+        print("response", response.text)
+        return PDFHandler.extract_json(response.text)\
     
 class PDFSummary:
     @staticmethod
