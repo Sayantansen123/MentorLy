@@ -1,11 +1,9 @@
 import boto3
 from botocore.client import Config
-import dotenv
 import os
 
 
-
-def upload(filepath:str,uploadname:str):
+def upload(filepath: str, uploadname: str):
     session = boto3.session.Session()
     r2 = session.client(
         service_name="s3",

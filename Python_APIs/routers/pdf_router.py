@@ -15,3 +15,10 @@ def generate_markdown(topic: str):
     return {"message": "Markdown generation started",
             "download": download_link}
 
+
+@pdf_router.post("/generate_roadmap")
+def generate_roadmap(subject: str):
+    """
+    Endpoint to generate a roadmap in JSON format.
+    """
+    return PDFHandler.generate_roadmap_json(subject)

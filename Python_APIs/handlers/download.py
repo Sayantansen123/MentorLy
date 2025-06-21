@@ -9,7 +9,9 @@ access_key = os.getenv("ACCESS_KEY")
 secret_key = os.getenv("SECRET_KEY")
 account_id = os.getenv("ACCOUNT_ID")
 bucket = os.getenv("BUCKET_NAME")
-def download(filename:str,savelocation:str):
+
+
+def download(filename: str, savelocation: str):
     OBJECT_KEY = filename  # PDF file inside R2
     ENDPOINT = f"https://{account_id}.r2.cloudflarestorage.com"
 
