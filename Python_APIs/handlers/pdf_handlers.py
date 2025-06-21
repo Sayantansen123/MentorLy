@@ -97,3 +97,37 @@ class PDFSummary:
         filepath = os.getenv("PDF_FILE_PATH")
         filepath = os.path.join(filepath, filename)
         return PDFHandler.generate_pdf(filepath, file)
+
+
+class PDFQuestions:
+    @staticmethod
+    def generate_questions(topic: str, subject: str):
+        # 📝 The topic you want notes on
+        prompt = f"""You are a helpful teaching assistant. Generate AI-powered questions on the topic "{topic}" and subject "{subject}" with the following structure:
+        - HeadLine containing the topic and subject and alloted time
+        - A list of 10-15 questions
+        - Each question should be clear and concise
+        - do not include answers to the questions
+        """
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash", contents=prompt
+        )
+
+        with open(f"{topic.replace(' ', '_').lower()}_questions.md", "w", encoding="utf-8") as f:
+            f.write(response.text)
+        filename = f"{topic.replace(' ', '_').lower()}_questions.md"
+        filepath = os.getenv("PDF_FILE_PATH")
+        filepath = os.path.join(filepath, filename)
+        return PDFQuestions.generate_questions_pdf(filepath, topic, subject)
+    
+    @staticmethod
+    def generate_questions_pdf(filepath: str, topic: str, subject: str):
+        document = Document()
+        document.LoadFromFile(filepath)
+        pdf_name = topic+"Questions.pdf"
+        document.SaveToFile(pdf_name, FileFormat.PDF)
+        pdf_filepath=os.getenv("PDF_FILE_PATH")
+        pdf_filepath = os.path.join(pdf_filepath, pdf_name)
+        document.Dispose()
+        return upload(pdf_filepath,pdf_name)
