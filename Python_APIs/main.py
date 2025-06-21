@@ -22,7 +22,7 @@ app.include_router(pdf_router)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=7000, log_level="info",
+    uvicorn.run(app, host="0.0.0.0", port=7000, log_level="info",
                 workers=1, timeout_keep_alive=5)
 # To run the application, use the command:
 # uvicorn main:app --host
