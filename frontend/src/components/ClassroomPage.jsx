@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import ClassPage from "./ClassPage"
 import {
   Plus,
@@ -27,6 +27,7 @@ import { useNavigate } from "react-router-dom";
 const ClassroomPage = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [pdfModalOpen,setIsPDFModalOpen] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false)
   const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false)
@@ -35,6 +36,33 @@ const ClassroomPage = () => {
   const [createdClass, setCreatedClass] = useState(null)
   const [activeTab, setActiveTab] = useState("classes")
   const [currentView, setCurrentView] = useState("overview") // 'overview' or 'class-detail'
+
+   const [file, setFile] = useState(null);
+  const inputRef = useRef();
+
+  const handleFileChange = (e) => {
+    const uploadedFile = e.target.files[0];
+    if (uploadedFile) {
+      setFile(uploadedFile);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+      setFile(droppedFile);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const removeFile = () => {
+    setFile(null);
+    inputRef.current.value = null;
+  };
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.subject) return;
@@ -588,7 +616,7 @@ const ClassroomPage = () => {
         {activeTab === "assignments" && (
           <>
             {/* Create Assignment Button */}
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-8 gap-2">
               <button
                 onClick={() => setIsAssignmentModalOpen(true)}
                 className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:shadow-xl transition-all duration-300 group cursor-pointer flex items-center space-x-4"
@@ -599,6 +627,19 @@ const ClassroomPage = () => {
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Create Assignment</h3>
                   <p className="text-gray-600">Add a new assignment for your students</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setIsPDFModalOpen(true)}
+                className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:shadow-xl transition-all duration-300 group cursor-pointer flex items-center space-x-4"
+              >
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-600 rounded-full group-hover:scale-110 transition-transform">
+                  <Plus className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">PDF summarizer</h3>
+                  <p className="text-gray-600">Summary of your pdf </p>
                 </div>
               </button>
             </div>
@@ -826,6 +867,75 @@ const ClassroomPage = () => {
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   Create Assignment
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {pdfModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-in fade-in duration-300">
+            <div className="bg-white p-8 rounded-xl w-full max-w-lg shadow-lg animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
+              <h2 className="text-2xl font-bold mb-6">Create New Summary</h2>
+              <div className="space-y-4">
+                 <label
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        className="flex flex-col items-center justify-center w-full h-64 p-6 border-2 border-dashed border-purple-400 rounded-2xl cursor-pointer bg-white hover:bg-purple-50 transition-all duration-300"
+      >
+        <input
+          type="file"
+          accept="image/*,video/*,.pdf,.doc,.docx"
+          className="hidden"
+          ref={inputRef}
+          onChange={handleFileChange}
+        />
+
+        {!file ? (
+          <>
+            <svg
+              className="w-12 h-12 text-purple-400 mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16V4m0 0L3 8m4-4l4 4m5 8v-6m0 0l-4 4m4-4l4 4"
+              />
+            </svg>
+            <p className="text-gray-600">Click or drag a file here to upload</p>
+          </>
+        ) : (
+          <div className="text-center">
+            <p className="font-semibold text-purple-600">{file.name}</p>
+            <p className="text-sm text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
+            <button
+              onClick={removeFile}
+              className="mt-3 px-4 py-1 text-sm bg-red-500 text-white rounded-md hover:bg-red-600"
+            >
+              Remove
+            </button>
+          </div>
+        )}
+      </label>
+          
+                
+              </div>
+              <div className="flex justify-end mt-6 space-x-4">
+                <button
+                  onClick={() => setIsPDFModalOpen(false)}
+                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Create Summary
                 </button>
               </div>
             </div>
