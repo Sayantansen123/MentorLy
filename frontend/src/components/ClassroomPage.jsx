@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import ClassPage from "./ClassPage"
 import {
@@ -23,8 +22,10 @@ import {
   Calendar,
   User,
 } from "lucide-react"
+import { useNavigate } from "react-router-dom";
 
 const ClassroomPage = () => {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false)
@@ -35,6 +36,28 @@ const ClassroomPage = () => {
   const [activeTab, setActiveTab] = useState("classes")
   const [currentView, setCurrentView] = useState("overview") // 'overview' or 'class-detail'
 
+  const handleSubmit = async () => {
+    if (!formData.name || !formData.subject) return;
+
+    try {
+      // Optionally, send this to your backend to save the class
+      // await axios.post("/api/classes", formData);
+
+      // You can use class name as Agora channel name
+      const channelName = formData.name.trim().replace(/\s+/g, "_");
+
+      // Close modal
+      setIsModalOpen(false);
+
+      // Redirect to Classroom
+      navigate(`/classroom/${channelName}?role=host`);
+    } catch (error) {
+      console.error("Failed to create class:", error);
+    }
+  };
+
+  
+  
   const [formData, setFormData] = useState({
     name: "",
     section: "",
@@ -212,28 +235,7 @@ const ClassroomPage = () => {
     setAssignmentFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  const handleSubmit = () => {
-    const classCode = generateClassCode()
-    const newClass = {
-      id: classes.length + 1,
-      name: formData.name,
-      teacher: "You",
-      subject: formData.subject,
-      icon: <BookOpen className="h-6 w-6" />,
-      nextClass: "Not Scheduled",
-      students: 0,
-      status: "upcoming",
-      color: "from-indigo-500 to-blue-600",
-      classCode: classCode,
-      assignments: [],
-    }
 
-    setClasses([newClass, ...classes])
-    setCreatedClass(newClass)
-    setFormData({ name: "", section: "", subject: "", room: "" })
-    setIsModalOpen(false)
-    setIsSuccessModalOpen(true)
-  }
 
   const handleAssignmentSubmit = () => {
     if (
@@ -296,24 +298,22 @@ const ClassroomPage = () => {
       return
     }
 
-    const foundClass = classes.find((cls) => cls.classCode.toLowerCase() === joinCode.trim().toLowerCase())
+    try {
+      // Optionally, send this to your backend to save the class
+      // await axios.post("/api/classes", formData);
 
-    if (foundClass) {
-      setClasses((prevClasses) =>
-        prevClasses.map((cls) => (cls.id === foundClass.id ? { ...cls, students: cls.students + 1 } : cls)),
-      )
+      // You can use class name as Agora channel name
+      const channelName = joinCode;
 
-      setJoinMessage(`Successfully joined ${foundClass.name}!`)
-      setJoinMessageType("success")
-      setJoinCode("")
+      // Close modal
+      setIsModalOpen(false);
 
-      setTimeout(() => {
-        handleJoinClass(foundClass)
-      }, 1500)
-    } else {
-      setJoinMessage("Class not found. Please check the code and try again.")
-      setJoinMessageType("error")
+      // Redirect to Classroom
+      navigate(`/classroom/${channelName}?role=audience`);
+    } catch (error) {
+      console.error("Failed to create class:", error);
     }
+  
   }
 
   const copyToClipboard = (code) => {
@@ -455,7 +455,7 @@ const ClassroomPage = () => {
                       placeholder="Enter class code"
                       value={joinCode}
                       onChange={(e) => {
-                        setJoinCode(e.target.value.toUpperCase())
+                        setJoinCode(e.target.value)
                         setJoinMessage("")
                       }}
                       className="flex-1 bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"

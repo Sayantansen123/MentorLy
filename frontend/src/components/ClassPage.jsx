@@ -36,7 +36,7 @@ const ClassPage = ({ classData, navigateTo }) => {
     points: "",
     instructions: "",
   })
-
+  
   if (!classData) {
     return (
       <div className="px-4 py-8 sm:px-6 lg:px-8 min-h-screen flex items-center justify-center bg-gray-50">
