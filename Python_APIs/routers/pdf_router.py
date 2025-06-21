@@ -1,8 +1,12 @@
 from fastapi import APIRouter, File, UploadFile
-from handlers.pdf_handlers import PDFHandler, PDFSummary
+from pydantic import BaseModel
+from handlers.pdf_handlers import PDFHandler, PDFSummary, PDFQuestions
 from handlers.text_extract import extract
 pdf_router = APIRouter(prefix="/pdf", tags=["PDF"])
 
+class Topic_Subject_Request(BaseModel):
+    topic: str
+    subject: str
 
 @pdf_router.post("/generate_markdown")
 def generate_markdown(topic: str):
@@ -34,3 +38,11 @@ async def generate_summary(topic:str,pdf_file: UploadFile = File(...)):
         f.write(pdf)
     text=extract(f"uploads/{pdf_file.filename}")
     return PDFSummary.generate_summary_markdown(text=text,file=f"uploads/{pdf_file.filename}")
+
+
+@pdf_router.post("/generate_questions")
+def generate_questions(topic_subject: Topic_Subject_Request):
+    """
+    Endpoint to generate questions based on topic and subject.
+    """
+    return PDFQuestions.generate_questions(topic=topic_subject.topic, subject=topic_subject.subject)
