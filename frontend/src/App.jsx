@@ -10,6 +10,9 @@ import { ToastContainer } from 'react-toastify';
 import PrivateRoute from './api/privateRoute.jsx';
 import ClassroomVideo from './components/ClassroomVideo.jsx';
 import Roadmap from './components/Flowchart.jsx';
+import AboutUsPage from './components/About.jsx';
+import PricingPage from './components/Pricing.jsx';
+import Dashboard from './components/Dashboard.jsx';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -27,8 +30,11 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Homepage />} />
+            <Route path="/about" element={<AboutUsPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
            <Route element={<PrivateRoute />}>
            <Route path="/classroom/:channelName" element={<ClassroomVideo />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/classroom" element={<ClassroomPage />} />
               <Route path="/class" element={<ClassPage />} />
             </Route>
