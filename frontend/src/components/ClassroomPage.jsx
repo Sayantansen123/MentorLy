@@ -26,9 +26,11 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Roadmap from "./Flowchart";
+import CameraCapture from "./CameraCapture";
 
 const ClassroomPage = () => {
   const navigate = useNavigate();
+  const [verified, setVerified] = useState(false);
   const [markdownTopic, setMarkDownTopic] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [pdfModalOpen, setIsPDFModalOpen] = useState(false)
@@ -43,15 +45,16 @@ const ClassroomPage = () => {
   const [activeTab, setActiveTab] = useState("classes")
   const [fileUrl, setFileUrl] = useState(null);
   const [currentView, setCurrentView] = useState("overview") // 'overview' or 'class-detail'
-  const [flowTopic,setflowTopic] = useState();
-  const [flowJson,setFlowJson] = useState({});
+  const [flowTopic, setflowTopic] = useState();
+  const [flowJson, setFlowJson] = useState({});
   const [file, setFile] = useState(null);
   const inputRef = useRef();
+  const [startVerify, setStartVerify] = useState(false)
 
   const handleMarkdownSubmit = async () => {
     if (!markdownTopic) return toast.error("No topic given");
     try {
-      const res = await axios.post(`http://10.230.245.255:7000/pdf/generate_markdown?topic=${markdownTopic}`,  {
+      const res = await axios.post(`http://10.230.245.255:7000/pdf/generate_markdown?topic=${markdownTopic}`, {
         headers: { 'Content-Type': 'application/json' },
       });
 
@@ -63,11 +66,11 @@ const ClassroomPage = () => {
       console.error(err);
     }
   }
-  
-  const handleFlowchartSubmit = async () =>{
-   if(!flowTopic){ return toast.error("No topic given") };
-   try {
-      const res = await axios.post(`http://10.230.245.255:7000/pdf/generate_roadmap?subject=${flowTopic}`,  {
+
+  const handleFlowchartSubmit = async () => {
+    if (!flowTopic) { return toast.error("No topic given") };
+    try {
+      const res = await axios.post(`http://10.230.245.255:7000/pdf/generate_roadmap?subject=${flowTopic}`, {
         headers: { 'Content-Type': 'application/json' },
       });
 
@@ -496,8 +499,8 @@ const ClassroomPage = () => {
             <button
               onClick={() => setActiveTab("assignments")}
               className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${activeTab === "assignments"
-                  ? "bg-purple-600 text-white shadow-lg"
-                  : "text-gray-600 hover:text-purple-600"
+                ? "bg-purple-600 text-white shadow-lg"
+                : "text-gray-600 hover:text-purple-600"
                 }`}
             >
               All Assignments
@@ -548,12 +551,35 @@ const ClassroomPage = () => {
                       className="flex-1 bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       maxLength={6}
                     />
-                    <button
-                      onClick={handleJoinWithCode}
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
-                    >
-                      Join
-                    </button>
+                    {!startVerify && !verified && (
+                      <button
+                        onClick={() => setStartVerify(true)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                      >
+                        Verify
+                      </button>
+                    )}
+
+                    {startVerify && !verified && (
+                      <div className="mt-4">
+                        <CameraCapture
+                          onSuccess={() => {
+                            setVerified(true);
+                            setStartVerify(false);
+                          }}
+                        />
+                      </div>
+                    )}
+
+
+                    {verified && (
+                      <button
+                        onClick={handleJoinWithCode}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                      >
+                        Join
+                      </button>
+                    )}
                   </div>
 
                   {joinMessage && (
@@ -637,10 +663,10 @@ const ClassroomPage = () => {
                   </div>
                   <button
                     className={`w-full ${classData.status === "live"
-                        ? "bg-red-600 hover:bg-red-700"
-                        : classData.status === "today"
-                          ? "bg-orange-600 hover:bg-orange-700"
-                          : "bg-purple-600 hover:bg-purple-700"
+                      ? "bg-red-600 hover:bg-red-700"
+                      : classData.status === "today"
+                        ? "bg-orange-600 hover:bg-orange-700"
+                        : "bg-purple-600 hover:bg-purple-700"
                       } text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 transform group-hover:scale-105 flex items-center justify-center space-x-2`}
                   >
                     <Play className="h-5 w-5" />
@@ -713,7 +739,7 @@ const ClassroomPage = () => {
                 </div>
               </button>
 
-               <button
+              <button
                 onClick={() => setPdfRoadmapOpen(true)}
                 className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:shadow-xl transition-all duration-300 group cursor-pointer flex items-center space-x-4"
               >
@@ -1031,7 +1057,7 @@ const ClassroomPage = () => {
             </div>
           </div>
         )}
-        
+
         {/*pdf markdown*/}
         {pdfMarkdownOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-in fade-in duration-300">
@@ -1048,7 +1074,7 @@ const ClassroomPage = () => {
               </div>
               <div className="flex justify-end mt-6 space-x-4">
                 <button
-                  onClick={() => {setPdfMarkdownOpen(false),setFileUrl(null),setMarkDownTopic("")}}
+                  onClick={() => { setPdfMarkdownOpen(false), setFileUrl(null), setMarkDownTopic("") }}
                   className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Cancel
@@ -1085,7 +1111,7 @@ const ClassroomPage = () => {
               </div>
               <div className="flex justify-end mt-6 space-x-4">
                 <button
-                  onClick={() => {setPdfRoadmapOpen(false),setflowTopic(""),setFlowJson({})}}
+                  onClick={() => { setPdfRoadmapOpen(false), setflowTopic(""), setFlowJson({}) }}
                   className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Cancel
@@ -1096,13 +1122,13 @@ const ClassroomPage = () => {
                 >
                   Create Roadmap
                 </button>
-              
+
               </div>
               {flowJson && Object.keys(flowJson).length > 0 ? (
-  <div className="mt-8">
-    <Roadmap roadmapData={flowJson} />
-  </div>
-) : null}
+                <div className="mt-8">
+                  <Roadmap roadmapData={flowJson} />
+                </div>
+              ) : null}
             </div>
           </div>
         )}
